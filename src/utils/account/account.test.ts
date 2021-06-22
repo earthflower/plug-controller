@@ -137,7 +137,7 @@ describe('Account utils', () => {
     });
   });
 
-  describe('credentials utility', () => {
+  describe.only('credentials utility', () => {
     it('should sign a message into an unreadable state and recover it using its keys', () => {
       const { secretKey, publicKey } = globalKeys;
 

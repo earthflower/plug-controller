@@ -18,7 +18,7 @@ import { derivePath } from '../crypto/hdKeyManager';
 
 const bip39 = require('bip39');
 const CryptoJS = require('crypto-js');
-const { Ed25519KeyIdentity } = require('@dfinity/identity');
+const { Ed25519KeyIdentity, Ed25519PublicKey } = require('@dfinity/identity');
 const createHmac = require('create-hmac');
 
 interface DerivedKey {
@@ -94,9 +94,15 @@ const getAccountCredentials = (
   subAccount?: number,
   password?: string
 ): AccountCredentials => {
-  const { fullKey } = deriveKey(mnemonic, subAccount || 0, password);
+  const { fullKey, chainCode } = deriveKey(mnemonic, subAccount || 0, password);
+
   // Identity has boths keys via getKeyPair and PID via getPrincipal
-  const identity = Ed25519KeyIdentity.fromSecretKey(fullKey);
+  // const identity = Ed25519KeyIdentity.fromSecretKey(fullKey);
+  const publicKey = Ed25519PublicKey.fromRaw(chainCode);
+  const identity = Ed25519KeyIdentity.fromParsedJson([
+    publicKey.toDer().toString('hex'),
+    fullKey.toString('hex'),
+  ]);
   const accountId = createAccountId(identity.getPrincipal(), subAccount);
   return {
     mnemonic,

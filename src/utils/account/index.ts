@@ -1,6 +1,6 @@
 import { Principal } from '@dfinity/agent';
-import { ERRORS } from '../../errors';
 
+import { ERRORS } from '../../errors';
 import { AccountCredentials } from '../../interfaces/account';
 import {
   DERIVATION_PATH,
@@ -24,6 +24,7 @@ const createHmac = require('create-hmac');
 interface DerivedKey {
   key: Buffer;
   chainCode: Buffer;
+  fullKey: Buffer;
 }
 
 export const extendKey = ({ key, chainCode }, index): DerivedKey => {
@@ -38,6 +39,7 @@ export const extendKey = ({ key, chainCode }, index): DerivedKey => {
   return {
     key: IL,
     chainCode: IR,
+    fullKey: I,
   };
 };
 
@@ -78,7 +80,7 @@ const deriveKey = (
   const hexSeed = bip39.mnemonicToSeedSync(mnemonic, password);
   const masterXKey = derivePath(
     DERIVATION_PATH,
-    hexSeed,
+    hexSeed.toString(),
     HARDENED_OFFSET + index
   );
   const childXKey = extendKey(masterXKey, 0);
@@ -92,9 +94,9 @@ const getAccountCredentials = (
   subAccount?: number,
   password?: string
 ): AccountCredentials => {
-  const { key } = deriveKey(mnemonic, subAccount || 0, password);
+  const { fullKey } = deriveKey(mnemonic, subAccount || 0, password);
   // Identity has boths keys via getKeyPair and PID via getPrincipal
-  const identity = Ed25519KeyIdentity.generate(key);
+  const identity = Ed25519KeyIdentity.fromSecretKey(fullKey);
   const accountId = createAccountId(identity.getPrincipal(), subAccount);
   return {
     mnemonic,

@@ -117,9 +117,10 @@ export const createAccountFromImported = (
   if (!mnemonic || !bip39.validateMnemonic(mnemonic)) {
     throw new Error(ERRORS.INVALID_MNEMONIC);
   }
+  console.log(identity);
   return {
     mnemonic,
-    identity: Ed25519KeyIdentity.fromJSON(JSON.stringify(identity)),
+    identity: Ed25519KeyIdentity.fromParsedJson(identity),
     accountId,
   };
 };

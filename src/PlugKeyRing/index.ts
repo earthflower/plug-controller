@@ -64,8 +64,8 @@ class PlugKeyRing {
       mnemonic: this.state.mnemonic as string,
       walletNumber: this.state.wallets.length,
     });
-    const wallets = [...this.state.wallets, wallet];
-    await this.storeState({ wallets }, this.state.password);
+    (this.state.wallets as PlugWallet[]).push(wallet);
+    await this.storeState(this.state, this.state.password);
     return wallet;
   };
 

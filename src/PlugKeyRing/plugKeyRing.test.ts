@@ -1,7 +1,10 @@
+import RandomBigInt from 'random-bigint';
+
 import PlugKeyRing from '.';
 import { ERRORS } from '../errors';
-import PlugWallet from '../PlugWallet';
 import store from '../utils/storage/mock';
+
+import PlugWallet from '../PlugWallet';
 
 const bip39 = require('bip39');
 const CryptoJS = require('crypto-js');
@@ -215,5 +218,40 @@ describe('Plug KeyRing', () => {
   });
   describe('name management', () => {
     // TODO
+  });
+  describe('create principal', () => {
+    beforeEach(async () => {
+      keyRing = new PlugKeyRing();
+      await keyRing.create({ password: TEST_PASSWORD });
+      await keyRing.unlock(TEST_PASSWORD);
+    });
+
+    test('first wallet is created', async () => {
+      const state = await keyRing.getState();
+
+      expect(state.wallets.length).toBe(1);
+    });
+
+    test('create a new wallet and you have 2', async () => {
+      await keyRing.createPrincipal();
+      const state = await keyRing.getState();
+
+      expect(state.wallets.length).toBe(2);
+    });
+
+    test('have as many wallets as created', async () => {
+      const MANY = Math.round(Math.random() * 20) + 2;
+      const promisedWallets: Promise<PlugWallet>[] = [];
+
+      for (let i = 1; i < MANY; i += 1) {
+        promisedWallets.push(keyRing.createPrincipal());
+      }
+
+      await Promise.all(promisedWallets);
+
+      const state = await keyRing.getState();
+
+      expect(state.wallets.length).toBe(MANY);
+    });
   });
 });

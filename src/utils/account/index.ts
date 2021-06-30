@@ -1,4 +1,9 @@
+import * as bip39 from 'bip39';
+import CryptoJS from 'crypto-js';
+import { Ed25519KeyIdentity, Ed25519PublicKey } from '@dfinity/identity';
+import createHmac from 'create-hmac';
 import { Principal } from '@dfinity/agent';
+import { blobFromHex } from '@dfinity/candid';
 
 import { ERRORS } from '../../errors';
 import { AccountCredentials } from '../../interfaces/account';
@@ -8,18 +13,13 @@ import {
   SUB_ACCOUNT_ZERO,
   HARDENED_OFFSET,
 } from './constants';
-import { getLedgerActor } from '../dfx';
+import { createLedgerActor, createAgent } from '../dfx';
 import {
   byteArrayToWordArray,
   generateChecksum,
   wordArrayToByteArray,
 } from '../crypto';
 import { derivePath } from '../crypto/hdKeyManager';
-
-const bip39 = require('bip39');
-const CryptoJS = require('crypto-js');
-const { Ed25519KeyIdentity, Ed25519PublicKey } = require('@dfinity/identity');
-const createHmac = require('create-hmac');
 
 interface DerivedKey {
   key: Buffer;
@@ -72,15 +72,11 @@ export const createAccountId = (
   return val;
 };
 
-const deriveKey = (
-  mnemonic: string,
-  index = 0,
-  password?: string
-): DerivedKey => {
-  const hexSeed = bip39.mnemonicToSeedSync(mnemonic, password);
+const deriveKey = (mnemonic: string, index = 0): DerivedKey => {
+  const hexSeed = bip39.mnemonicToSeedSync(mnemonic);
   const masterXKey = derivePath(
     DERIVATION_PATH,
-    hexSeed.toString(),
+    hexSeed.toString('hex'),
     HARDENED_OFFSET + index
   );
   const childXKey = extendKey(masterXKey, 0);
@@ -91,14 +87,14 @@ const deriveKey = (
 
 const getAccountCredentials = (
   mnemonic: string,
-  subAccount?: number,
-  password?: string
+  subAccount?: number
 ): AccountCredentials => {
-  const { fullKey, chainCode } = deriveKey(mnemonic, subAccount || 0, password);
-
+  const { fullKey, chainCode } = deriveKey(mnemonic, subAccount || 0);
   // Identity has boths keys via getKeyPair and PID via getPrincipal
   // const identity = Ed25519KeyIdentity.fromSecretKey(fullKey);
-  const publicKey = Ed25519PublicKey.fromRaw(chainCode);
+  const publicKey = Ed25519PublicKey.fromRaw(
+    blobFromHex(chainCode.toString('hex'))
+  );
   const identity = Ed25519KeyIdentity.fromParsedJson([
     publicKey.toDer().toString('hex'),
     fullKey.toString('hex'),
@@ -111,15 +107,14 @@ const getAccountCredentials = (
   };
 };
 
-export const createAccount = (password?: string): AccountCredentials => {
+export const createAccount = (): AccountCredentials => {
   const mnemonic = bip39.generateMnemonic();
-  return getAccountCredentials(mnemonic, 0, password);
+  return getAccountCredentials(mnemonic, 0);
 };
 
 export const createAccountFromMnemonic = (
   mnemonic: string,
-  accountId: number,
-  password?: string
+  accountId: number
 ): AccountCredentials => {
   if (!mnemonic || !bip39.validateMnemonic(mnemonic)) {
     throw new Error(ERRORS.INVALID_MNEMONIC);
@@ -127,14 +122,15 @@ export const createAccountFromMnemonic = (
   if (typeof accountId !== 'number' || accountId < 0) {
     throw new Error(ERRORS.INVALID_ACC_ID);
   }
-  return getAccountCredentials(mnemonic, accountId, password);
+  return getAccountCredentials(mnemonic, accountId);
 };
 
 // Queries first 10 accounts for the provided key
 export const queryAccounts = async (
   secretKey: Uint8Array
 ): Promise<{ [key: string]: { accountId: string; balance: number } }> => {
-  const ledgerActor = await getLedgerActor(secretKey);
+  const agent = await createAgent({ secretKey });
+  const ledgerActor = await createLedgerActor(agent);
   const identity = Ed25519KeyIdentity.fromSecretKey(secretKey);
   const balances = {};
   for (let subAccount = 0; subAccount < 10; subAccount += 1) {

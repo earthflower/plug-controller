@@ -51,7 +51,7 @@
     "typescript": "^3.8.3"
   },
   "name": "@psychedelic/plug-controller",
-  "version": "1.0.8",
+  "version": "0.0.6",
   "description": "Internet Computer Plug wallet's controller",
   "main": "dist/index.js",
   "scripts": {
@@ -66,6 +66,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Psychedelic/plug-controller.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@psychedelic"
   },
   "keywords": [
     "ic",

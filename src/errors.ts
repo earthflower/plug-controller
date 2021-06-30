@@ -4,4 +4,5 @@ export const ERRORS = {
   PASSWORD_REQUIRED: 'A password is required',
   NOT_INITIALIZED: 'Plug must be initialized',
   STATE_LOCKED: 'The state is locked',
+  INVALID_WALLET_NUMBER: 'Invalid wallet number',
 };

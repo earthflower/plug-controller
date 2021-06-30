@@ -70,7 +70,18 @@ export const createAccountId = (
   return val;
 };
 
-// const deriveKey = (mnemonic: string, index = 0): DerivedKey => {};
+const deriveKey = (mnemonic: string, index = 0): DerivedKey => {
+  const hexSeed = bip39.mnemonicToSeedSync(mnemonic);
+  const masterXKey = derivePath(
+    DERIVATION_PATH,
+    hexSeed.toString('hex'),
+    HARDENED_OFFSET + index
+  );
+  const childXKey = extendKey(masterXKey, 0);
+  const grandchildXKey = extendKey(childXKey, index);
+
+  return grandchildXKey;
+};
 
 const getAccountCredentials = (
   mnemonic: string,

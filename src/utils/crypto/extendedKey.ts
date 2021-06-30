@@ -42,14 +42,15 @@ export default class ExtendedKey {
     const childChainCode = I.slice(32);
 
     /// this part is not on RockyDerive but it is on keysmith
-    let ilNum = BigInt(Il.readUInt32BE());
-    const keyNum = BigInt(this.key.readUInt32BE());
-    ilNum += keyNum;
-    ilNum %= btcecS256N;
-    const childKey = Buffer.allocUnsafe(32);
-    childKey.writeBigUInt64BE(ilNum, 0);
+    // let ilNum = BigInt(Il.readUInt32BE());
+    // const keyNum = BigInt(this.key.readUInt32BE());
+    // ilNum += keyNum;
+    // ilNum %= btcecS256N;
+    // const childKey = Buffer.allocUnsafe(32);
+    // childKey.writeBigUInt64BE(ilNum, 0);
 
-    this.key = childKey;
+    // this.key = childKey;
+    this.key = Il;
     this.chainCode = childChainCode;
   }
 

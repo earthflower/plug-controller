@@ -1,6 +1,6 @@
 import * as bip39 from 'bip39';
 import CryptoJS from 'crypto-js';
-import { Ed25519KeyIdentity } from '@dfinity/identity';
+import { Ed25519KeyIdentity, Ed25519PublicKey } from '@dfinity/identity';
 import createHmac from 'create-hmac';
 import { blobFromHex, Principal } from '@dfinity/agent';
 import { ERRORS } from '../../errors';
@@ -89,7 +89,14 @@ const getAccountCredentials = (
 ): AccountCredentials => {
   const { privateKey, publicKey } = generateKeyPair(mnemonic, subAccount || 0);
   // Identity has boths keys via getKeyPair and PID via getPrincipal
-  const identity = Ed25519KeyIdentity.fromSecretKey(privateKey);
+  // const identity = Ed25519KeyIdentity.fromSecretKey(fullKey);
+  const publicKeyEd = Ed25519PublicKey.fromRaw(
+    blobFromHex(publicKey.toString('hex'))
+  );
+  const identity = Ed25519KeyIdentity.fromParsedJson([
+    publicKeyEd.toDer().toString('hex'),
+    privateKey.toString('hex'),
+  ]);
 
   const accountId = createAccountId(identity.getPrincipal(), subAccount);
   return {

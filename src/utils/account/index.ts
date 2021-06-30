@@ -2,7 +2,7 @@ import * as bip39 from 'bip39';
 import CryptoJS from 'crypto-js';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import createHmac from 'create-hmac';
-import { Principal } from '@dfinity/agent';
+import { blobFromHex, Principal } from '@dfinity/agent';
 import { ERRORS } from '../../errors';
 
 import { AccountCredentials } from '../../interfaces/account';
@@ -19,6 +19,7 @@ import {
   wordArrayToByteArray,
 } from '../crypto';
 import { derivePath } from '../crypto/hdKeyManager';
+import { generateKeyPair } from '../crypto/hdKey';
 
 interface DerivedKey {
   key: Buffer;
@@ -69,26 +70,20 @@ export const createAccountId = (
   return val;
 };
 
-const deriveKey = (mnemonic: string, index = 0): DerivedKey => {
-  const hexSeed = bip39.mnemonicToSeedSync(mnemonic);
-  const masterXKey = derivePath(
-    DERIVATION_PATH,
-    hexSeed.toString('hex'),
-    HARDENED_OFFSET + index
-  );
-  const childXKey = extendKey(masterXKey, 0);
-  const grandchildXKey = extendKey(childXKey, index);
-
-  return grandchildXKey;
-};
+// const deriveKey = (mnemonic: string, index = 0): DerivedKey => {};
 
 const getAccountCredentials = (
   mnemonic: string,
   subAccount?: number
 ): AccountCredentials => {
-  const { key } = deriveKey(mnemonic, subAccount || 0);
+  const { privateKey, publicKey } = generateKeyPair(mnemonic, subAccount || 0);
   // Identity has boths keys via getKeyPair and PID via getPrincipal
-  const identity = Ed25519KeyIdentity.generate(key);
+  console.log(privateKey.toString('hex'));
+  console.log(blobFromHex(privateKey.toString('hex')));
+  console.log(publicKey.toString('hex'));
+  console.log(blobFromHex(publicKey.toString('hex')));
+  const identity = Ed25519KeyIdentity.fromSecretKey(privateKey);
+
   const accountId = createAccountId(identity.getPrincipal(), subAccount);
   return {
     mnemonic,

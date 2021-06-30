@@ -89,10 +89,6 @@ const getAccountCredentials = (
 ): AccountCredentials => {
   const { privateKey, publicKey } = generateKeyPair(mnemonic, subAccount || 0);
   // Identity has boths keys via getKeyPair and PID via getPrincipal
-  console.log(privateKey.toString('hex'));
-  console.log(blobFromHex(privateKey.toString('hex')));
-  console.log(publicKey.toString('hex'));
-  console.log(blobFromHex(publicKey.toString('hex')));
   const identity = Ed25519KeyIdentity.fromSecretKey(privateKey);
 
   const accountId = createAccountId(identity.getPrincipal(), subAccount);

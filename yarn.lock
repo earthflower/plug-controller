@@ -4860,6 +4860,11 @@ nice-try@^1.0.4:
   resolved "https://registry.npmjs.org/nice-try/-/nice-try-1.0.5.tgz"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
+noble-secp256k1@^1.2.9:
+  version "1.2.9"
+  resolved "https://registry.yarnpkg.com/noble-secp256k1/-/noble-secp256k1-1.2.9.tgz#9cbbed8b53f972453a7117a648076bdf173d6cdb"
+  integrity sha512-H4ygD9EDh0Ajm0xStA9ZwLKCBCS3MD7cZwGWftp3GdWPYot9NpOQ5Ludbi4zyi0w+aODDynXOwdghIJNs9Yyzg==
+
 nock@^13.0.0:
   version "13.1.0"
   resolved "https://registry.npmjs.org/nock/-/nock-13.1.0.tgz"

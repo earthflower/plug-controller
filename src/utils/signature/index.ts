@@ -1,13 +1,16 @@
 import { BinaryBlob } from '@dfinity/candid';
-import Secp256k1 from 'secp256k1';
+import * as Secp256k1 from 'noble-secp256k1';
 import Secp256k1PublicKey from '../crypto/secpk256k1/publicKey';
 
 const encoder = new TextEncoder();
 
-export const sign = (message: string, secretKey: BinaryBlob): Uint8Array => {
+export const sign = async (
+  message: string,
+  secretKey: BinaryBlob
+): Promise<Uint8Array> => {
   const buffer = Buffer.alloc(32).fill(0);
   encoder.encodeInto(message, buffer);
-  const { signature } = Secp256k1.ecdsaSign(buffer, secretKey);
+  const signature = await Secp256k1.sign(buffer, secretKey);
   return signature;
 };
 export const verify = (
@@ -17,5 +20,5 @@ export const verify = (
 ): boolean => {
   const buffer = Buffer.alloc(32).fill(0);
   encoder.encodeInto(message, buffer);
-  return Secp256k1.ecdsaVerify(signature, buffer, publicKey.toRaw());
+  return Secp256k1.verify(signature, buffer, publicKey.toRaw());
 };

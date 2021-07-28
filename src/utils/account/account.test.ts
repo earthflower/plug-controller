@@ -139,10 +139,10 @@ describe('Account utils', () => {
   });
 
   describe('credentials utility', () => {
-    test('should sign a message into an unreadable state and recover it using its keys', () => {
+    test('should sign a message into an unreadable state and recover it using its keys', async () => {
       const { secretKey, publicKey } = globalKeys;
       const message = 'This is a secret message!';
-      const signed = sign(message, secretKey);
+      const signed = await sign(message, secretKey);
       const opened = verify(message, signed, publicKey);
       expect(opened).toBe(true);
     });

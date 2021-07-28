@@ -1,13 +1,28 @@
 /* eslint-disable no-underscore-dangle */
+<<<<<<< Updated upstream
+/* eslint-disable @typescript-eslint/camelcase */
 import Secp256k1 from 'secp256k1';
 
+=======
+>>>>>>> Stashed changes
 import {
   blobFromHex,
   blobFromUint8Array,
   blobToHex,
   BinaryBlob,
+  blobFromBuffer,
 } from '@dfinity/candid';
+<<<<<<< Updated upstream
+import {
+  HttpAgentRequest,
+  PublicKey,
+  requestIdOf,
+  SignIdentity,
+} from '@dfinity/agent';
+=======
 import { PublicKey, SignIdentity } from '@dfinity/agent';
+import * as Secp256k1 from 'noble-secp256k1';
+>>>>>>> Stashed changes
 import Secp256k1PublicKey from './publicKey';
 
 declare type PublicKeyHex = string;
@@ -73,7 +88,7 @@ class Secp256k1KeyIdentity extends SignIdentity {
   }
 
   public static fromSecretKey(secretKey: ArrayBuffer): Secp256k1KeyIdentity {
-    const publicKey = Secp256k1.publicKeyCreate(new Uint8Array(secretKey));
+    const publicKey = Secp256k1.getPublicKey(new Uint8Array(secretKey), false);
     const identity = Secp256k1KeyIdentity.fromKeyPair(
       blobFromUint8Array(publicKey),
       blobFromUint8Array(new Uint8Array(secretKey))
@@ -124,11 +139,37 @@ class Secp256k1KeyIdentity extends SignIdentity {
    * @param challenge - challenge to sign with this identity's secretKey, producing a signature
    */
   public async sign(challenge: BinaryBlob): Promise<BinaryBlob> {
-    const { signature } = Secp256k1.ecdsaSign(
-      new Uint8Array(challenge),
-      this._privateKey
-    );
+    // if message is shorter than 32, must pad it.
+    // if longer, must do something weird
+    console.log('challenge length', challenge.length);
+    const padding = Buffer.alloc(challenge.length % 2);
+    const message = new Uint8Array([...padding, ...challenge]);
+    const signature = await Secp256k1.sign(message, this._privateKey);
     return blobFromUint8Array(signature);
+  }
+
+  /**
+   * Transform a request into a signed version of the request. This is done last
+   * after the transforms on the body of a request. The returned object can be
+   * anything, but must be serializable to CBOR.
+   * @param request - internet computer request to transform
+   */
+  public async transformRequest(request: HttpAgentRequest): Promise<unknown> {
+    const { body, ...fields } = request;
+    const requestId = await requestIdOf(body);
+    const domainSeparator = Buffer.from(
+      new TextEncoder().encode('\x0Aic-request')
+    );
+    return {
+      ...fields,
+      body: {
+        content: body,
+        sender_pubkey: this.getPublicKey().toDer(),
+        sender_sig: await this.sign(
+          blobFromBuffer((Buffer as any).concat([domainSeparator, requestId]))
+        ),
+      },
+    };
   }
 }
 

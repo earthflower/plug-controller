@@ -3,7 +3,7 @@ import * as bip39 from 'bip39';
 import { derivePath } from 'ed25519-hd-key';
 import HDKey from 'hdkey';
 import { BinaryBlob, blobFromUint8Array } from '@dfinity/candid';
-import Secp256k1 from 'secp256k1';
+import * as Secp256k1 from 'noble-secp256k1';
 
 import { DERIVATION_PATH } from '../account/constants';
 import Secp256k1PublicKey from './secpk256k1/publicKey';
@@ -36,7 +36,7 @@ export const createSecp256K1KeyPair = (
   // BIP 44 derivation path definition
   // m / purpose' / coin_type' / account' / change / address_index ---> this being the subaccount index
   const { privateKey } = masterKey.derive(`${DERIVATION_PATH}/${index}`);
-  const publicKey = Secp256k1.publicKeyCreate(privateKey, false);
+  const publicKey = Secp256k1.getPublicKey(privateKey, false);
   return {
     secretKey: privateKey,
     publicKey: Secp256k1PublicKey.fromRaw(blobFromUint8Array(publicKey)),
